@@ -3,6 +3,7 @@ import User from '../../models/auth/user.js';
 import generateToken from '../../helpers/generateToken.js';
 import bcrypt from 'bcrypt';
 
+// Register User
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
 
@@ -20,33 +21,34 @@ export const registerUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.create({ name, email, password });
+    await user.save();
+
+    if (!user) {
+        return res.status(400).json({ message: "Invalid user data" });
+    }
 
     const token = generateToken(user._id);
-    
+
+    // Set the cookie and return the final response (no multiple responses)
     res.cookie("token", token, {
         httpOnly: true,
         path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000,
-        sameSite: true,
-        secure: true
+        sameSite: "None",
     });
 
-    if (user) {
-        return res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            photo: user.photo,
-            bio: user.bio,
-            isVerified: user.isVerified,
-            token
-        });
-    } else {
-        return res.status(400).json({ message: "Invalid user data" });
-    }
+    // This is the only response sent
+    return res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        photo: user.photo,
+        bio: user.bio,
+        isVerified: user.isVerified,
+        token
+    });
 });
-
 
 
 // Login User
@@ -59,79 +61,119 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const userExists = await User.findOne({ email });
     if (!userExists) {
-        return res.status(400).json({ message: "User does not exist, please sign up!" });
+        return res.status(404).json({ message: "User does not exist, please sign up!" });
     }
+
     const isMatch = await bcrypt.compare(password, userExists.password);
     if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = generateToken(userExists._id);
-    res.cookie("token", token, {
-        httpOnly: true,
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        sameSite: true,
-        secure: true
-    });
 
-    return res.status(200).json({
-        _id: userExists._id,
-        name: userExists.name,
-        email: userExists.email,
-        role: userExists.role,
-        photo: userExists.photo,
-        bio: userExists.bio,
-        isVerified: userExists.isVerified,
-        token
-    });
+
+    if (userExists && isMatch) {
+        // Set cookie and return user data in the same response
+        res.cookie("token", token, {
+            httpOnly: true,
+            path: '/',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            sameSite: "None",
+        });
+
+
+        // Return the final response (no further responses after this)
+        return res.status(200).json({
+            _id: userExists._id,
+            name: userExists.name,
+            email: userExists.email,
+            role: userExists.role,
+            photo: userExists.photo,
+            bio: userExists.bio,
+            isVerified: userExists.isVerified,
+            token
+        });
+    }
+
+    return res.status(400).json({ message: "Invalid credentials" });
 });
 
 
-
+// Logout User
 export const logoutUser = asyncHandler(async (req, res) => {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        path: "/",
+    });
     res.status(200).json({ message: "Logged out successfully" });
 });
 
-
+// Get Single User
 export const getUser = asyncHandler(async (req, res) => {
-
     const user = await User.findById(req.user._id).select("-password");
-  
+
     if (user) {
-      res.status(200).json(user);
+        res.status(200).json(user);
     } else {
-      res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
     }
-  });
+});
 
-
-  export const updateUser = asyncHandler(async (req, res) => {
-    // get user details from the token ----> protect middleware
+// Update User
+export const updateUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
-  
+
     if (user) {
-      // user properties to update
-      const { name, bio, photo } = req.body;
-      // update user properties
-      user.name = req.body.name || user.name;
-      user.bio = req.body.bio || user.bio;
-      user.photo = req.body.photo || user.photo;
-  
-      const updated = await user.save();
-  
-      res.status(200).json({
-        _id: updated._id,
-        name: updated.name,
-        email: updated.email,
-        role: updated.role,
-        photo: updated.photo,
-        bio: updated.bio,
-        isVerified: updated.isVerified,
-      });
+        const { name, bio, photo } = req.body;
+        user.name = name || user.name;
+        user.bio = bio || user.bio;
+        user.photo = photo || user.photo;
+
+        const updated = await user.save();
+
+        res.status(200).json({
+            _id: updated._id,
+            name: updated.name,
+            email: updated.email,
+            role: updated.role,
+            photo: updated.photo,
+            bio: updated.bio,
+            isVerified: updated.isVerified,
+        });
     } else {
-      // 404 Not Found
-      res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
     }
-  });
+});
+
+// Delete User
+export const deleteUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await User.findByIdAndDelete(id);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Get All Users
+export const getAllUsers = asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find({});
+        
+        if (users.length === 0) {
+            return res.status(404).json({ message: "No users found" });
+        }
+        
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});

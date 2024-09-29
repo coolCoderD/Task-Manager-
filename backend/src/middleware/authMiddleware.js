@@ -5,7 +5,8 @@ import User from "../models/auth/user.js";
 export const protect = asyncHandler(async (req, res, next) => {
     try {
 
-        const token = req.cookies.token;
+        const token = req.cookies['token'];
+        console.log(token);
         if (!token) {
             
             return res.status(401).json({ message: "Not authorized, please login!" });
@@ -26,3 +27,31 @@ export const protect = asyncHandler(async (req, res, next) => {
         return res.status(401).json({ message: "Not authorized, token failed!" });
     }
 });
+
+
+export const adminMiddleware=asyncHandler(async(req,res,next)=>{
+    if(req.user && req.user.role==='admin'){
+        next();
+        return;
+    }else{
+        return res.status(403).json({message:"Not authorized as admin!"})
+    }
+})
+
+export const creatorMiddleware=asyncHandler(async(req,res,next)=>{
+    if((req.user && req.user.role==='creator') && (req.user && req.user.role==='admin')){
+        next();
+        return;
+    }else{
+        return res.status(403).json({message:"Not authorized as creator!"})
+    }
+})
+
+export const verifiedMiddleware=asyncHandler(async(req,res,next)=>{
+    if(req.user && req.user.verified){
+        next();
+        return; 
+    }else{
+        return res.status(403).json({message:"Please verify your email address!"})
+    }
+})

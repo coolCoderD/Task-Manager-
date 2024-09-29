@@ -6,29 +6,17 @@ import fs from "node:fs";
 import connectDB from "./src/config/db.js";
 
 dotenv.config();
-
-// Connect to database
-connectDB();
-
 const port = process.env.PORT || 8000;
+
 const app = express();
 
-// CORS configuration
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:3000'];
+// middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
-
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -58,6 +46,7 @@ app.use((err, req, res, next) => {
 // Start the server
 const server = async () => {
   try {
+     await connectDB();
     app.listen(port, () => {
       console.log(`Listening on port ${port}`);
     });
