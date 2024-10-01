@@ -5,25 +5,16 @@ import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import { useUserContext } from '../context/userContext';
 
 
+
 export const Login = () => {
-  const {user}=useUserContext();
+  const {loginUser,userState,handleUserInput}=useUserContext();
   console.log(user)
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const togglePassword = () => setShowPassword(!showPassword);
-
-    const handlerUserInput = (type) => (e) => {
-        if (type === 'email') setEmail(e.target.value);
-        if (type === 'password') setPassword(e.target.value);
-    };
-
-
-    const loginUser = (e) => {
-        e.preventDefault();
-        // Your login logic here
-    };
+ 
 
     return (
         <Layout>
@@ -51,7 +42,7 @@ export const Login = () => {
                 type="text"
                 id="email"
                 value={email}
-                onChange={handlerUserInput('email')}
+                onChange={(e) => handleUserInput("email")(e)}
                 name="email"
                 className="px-4 py-3 border-[2px] rounded-md outline-purple-500 text-gray-800"
                 placeholder="johndoe@gmail.com"
@@ -65,7 +56,7 @@ export const Login = () => {
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
-                onChange={handlerUserInput('password')}
+                onChange={(e) => handleUserInput("password")(e)}
                 name="password"
                 className="px-4 py-3 border-[2px] rounded-md outline-purple-500 text-gray-800"
                 placeholder="***************"
