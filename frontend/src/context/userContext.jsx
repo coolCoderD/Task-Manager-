@@ -106,22 +106,24 @@ const logoutUser=async()=>{
     }
 }
 
-const getUser=async()=>{
+const getUser = async () => {
     setLoading(true);
-    try{
-        const res=await axios.get("${serverUrl}/api/user",{
-            withCredentials:true
+    try {
+        const res = await axios.get(`${serverUrl}/api/user`,{}, {
+            withCredentials: true
         });
-        setUser((prev)=>{
-            return {...prev,...res.data}
+        console.log(res); // Log the data to check the structure
+        setUser((prev) => {
+            return { ...prev, ...res.data };
         });
         setLoading(false);
-    }catch(err){
-        console.log("Error in getting user details",err);
+    } catch (err) {
+        console.log("Error in getting user details", err);
         setLoading(false);
         toast.error(err.response.data.message);
     }
 };
+
 
 
 const updateUser=async()=>{
@@ -191,6 +193,7 @@ useEffect(()=>{
         if(status){
             await getUser();
         }
+        console.log("User login status",status);
     } ;
     loginStatus();
 },[])
@@ -199,7 +202,7 @@ useEffect(()=>{
     if(user.role==='admin') getAllUsers();
 },[user.role])
 
-console.log(user);
+
 
     return (
         <UserContext.Provider value={{ 

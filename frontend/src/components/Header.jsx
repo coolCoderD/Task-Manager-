@@ -5,6 +5,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import { faMoon } from "@fortawesome/free-regular-svg-icons";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
+import { useUserContext } from "../context/userContext";
 
 
 function Header() {
@@ -14,6 +15,11 @@ function Header() {
   // const { name } = user;
   // const userId = user._id;
 
+
+  const {user,}=useUserContext();
+  console.log(user._id);
+  const { name } = user;
+  const userId = user._id;
   const handleNavigation = (path) => {
     window.location.href = path;
   };
@@ -25,7 +31,7 @@ function Header() {
           <span role="img" aria-label="wave">
             👋
           </span>
-          {/* {userId ? `Welcome, ${name}!` : "Welcome to Taskfyer"} */}
+          {userId ? `Welcome, ${name}!` : "Welcome to Taskfyer"}
         </h1>
         <p className="text-sm">
           {/* {userId ? (
