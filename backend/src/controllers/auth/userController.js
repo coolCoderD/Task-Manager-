@@ -62,7 +62,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const userExists = await User.findOne({ email });
     if (!userExists) {
-        return res.status(404).json({ message: "User does not exist, please sign up!" });
+        return res.status(400).json({ message: "User does not exist, please sign up!" });
     }
 
     const isMatch = await bcrypt.compare(password, userExists.password);
@@ -151,17 +151,20 @@ export const updateUser = asyncHandler(async (req, res) => {
 
 
 export const userLoginStatus = asyncHandler(async (req, res) => {
-    const token=req.cookies.token;
+    const token = req.cookies.token;
 
-    if(!token){
-        return res.status(401).json({message:"Not authorized, please login!"});
-    }else{
+    if (!token) {
+        return res.status(401).json({ message: "Not authorized, please login!" });
+    }
+
+    try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        if(decoded) return res.status(200).json(true);
-        else return res.status(401).json(false);
+        return res.status(200).json(true); // Token is valid
+    } catch (error) {
+        return res.status(401).json({ message: "Invalid or expired token, please login!" });
     }
 });
+
 
 // Delete User
 export const deleteUser = asyncHandler(async (req, res) => {

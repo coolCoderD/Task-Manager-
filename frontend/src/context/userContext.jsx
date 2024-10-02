@@ -69,7 +69,7 @@ export const UserProvider = ({ children }) => {
             navigate("/home");
         }catch(err){
             console.log("Error loggin in user",err)
-            toast.error(err.response.data.message);
+            toast.error(err.response?.data?.message || "Login failed");
         
     }
 }
@@ -175,15 +175,14 @@ const deleteUser=async(id)=>{
         toast.error(err.response.data.message);
         setLoading(false);
     }
+}
 
-
-    const handleUserInput=(name)=>(e)=>{
-        const value=e.target.value;
-        setUserState((prev)=>({
-            ...prev,
-            [name]:value
-        }))
-    }
+const handleUserInput=(name)=>(e)=>{
+    const value=e.target.value;
+    setUserState((prev)=>({
+        ...prev,
+        [name]:value
+    }))
 }
 
 useEffect(()=>{
@@ -200,7 +199,7 @@ useEffect(()=>{
     if(user.role==='admin') getAllUsers();
 },[user.role])
 
-
+console.log(user);
 
     return (
         <UserContext.Provider value={{ 

@@ -2,26 +2,13 @@ import React from 'react';
 import Layout from './Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import { useUserContext } from '../context/userContext';
 
 const Register = () => {
     const [showPassword, setShowPassword] = React.useState(false);
-    const [name, setName] = React.useState('');
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
+    const {registerUser,userState,handleUserInput}=useUserContext();
 
     const togglePassword = () => setShowPassword(!showPassword);
-
-    const handlerUserInput = (type) => (e) => {
-        if (type === 'name') setName(e.target.value);
-        if (type === 'email') setEmail(e.target.value);
-        if (type === 'password') setPassword(e.target.value);
-    };
-
-    const registerUser = (e) => {
-        e.preventDefault();
-        // Your registration logic here
-        console.log("Registering user:", { name, email, password });
-    };
 
     return (
         <Layout>
@@ -46,8 +33,8 @@ const Register = () => {
                     <input
                         type="text"
                         id="name"
-                        value={name}
-                        onChange={handlerUserInput("name")}
+                        value={userState.name}
+                        onChange={handleUserInput("name")}
                         name="name"
                         className="px-4 py-3 border-[2px] rounded-md outline-purple-500 text-gray-800"
                         placeholder="John Doe"
@@ -60,8 +47,8 @@ const Register = () => {
                     <input
                         type="text"
                         id="email"
-                        value={email}
-                        onChange={handlerUserInput("email")}
+                        value={userState.email}
+                        onChange={handleUserInput("email")}
                         name="email"
                         className="px-4 py-3 border-[2px] rounded-md outline-purple-500 text-gray-800"
                         placeholder="johndoe@gmail.com"
@@ -74,8 +61,8 @@ const Register = () => {
                     <input
                         type={showPassword ? "text" : "password"}
                         id="password"
-                        value={password}
-                        onChange={handlerUserInput("password")}
+                        value={userState.password}
+                        onChange={handleUserInput("password")}
                         name="password"
                         className="px-4 py-3 border-[2px] rounded-md outline-purple-500 text-gray-800"
                         placeholder="***************"
@@ -96,8 +83,12 @@ const Register = () => {
                 <div className="flex">
                     <button
                         type="submit"
-                        disabled={!name || !email || !password}
-                        className="mt-[1.5rem] flex-1 px-4 py-3 font-bold bg-purple-500 text-white rounded-md hover:bg-purple-900 transition-colors"
+                        disabled={!userState.name || !userState.email || !userState.password}
+                        className={`mt-[1.5rem] flex-1 px-4 py-3 font-bold rounded-md transition-colors ${
+                            !userState.email || !userState.password
+                              ? 'bg-purple-300 text-white cursor-not-allowed'
+                              : 'bg-purple-500 text-white hover:bg-purple-900'
+                          }`}
                     >
                         Register Now
                     </button>
